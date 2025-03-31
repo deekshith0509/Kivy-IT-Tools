@@ -1,0 +1,75 @@
+name: Build Kivy APK
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Temurin Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Buildozer dependencies
+        run: |
+          sudo apt update && sudo apt install -y \
+            python3-pip python3-setuptools python3-wheel \
+            git zip unzip openjdk-17-jdk \
+            virtualenv \
+            build-essential libsqlite3-dev sqlite3 bzip2 libbz2-dev \
+            zlib1g-dev libssl-dev libncurses5-dev libncursesw5-dev \
+            libreadline-dev libsqlite3-dev libgdbm-dev libdb5.3-dev \
+            libbz2-dev libexpat1-dev liblzma-dev libffi-dev \
+            libtool pkg-config \
+            libgl1 libgles2 autoconf automake
+          python -m pip install --upgrade pip setuptools cython
+
+      - name: Install Buildozer
+        run: pip install --user --upgrade buildozer
+
+      - name: Accept SDK licenses and prepare environment
+        run: |
+          mkdir -p ~/.android
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > ~/.android/repositories.cfg
+          yes | buildozer android update --sdk_dir=$HOME/.buildozer/android/platform/android-sdk
+
+      - name: Initialize Buildozer if needed
+        run: |
+          if [ ! -f buildozer.spec ]; then
+            buildozer init
+            # Modify default buildozer.spec for your needs
+            sed -i 's/^#android.accept_sdk_license =.*/android.accept_sdk_license = True/g' buildozer.spec
+            sed -i 's/^android.api =.*/android.api = 33/g' buildozer.spec
+          else
+            # Ensure license acceptance is enabled if buildozer.spec already exists
+            if ! grep -q "android.accept_sdk_license = True" buildozer.spec; then
+              sed -i 's/^#android.accept_sdk_license =.*/android.accept_sdk_license = True/g' buildozer.spec
+              if ! grep -q "android.accept_sdk_license" buildozer.spec; then
+                echo "android.accept_sdk_license = True" >> buildozer.spec
+              fi
+            fi
+          fi
+      - name: Build APK
+        run: |
+          export PATH=$PATH:~/.local/bin
+          buildozer android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: bin/*.apk
