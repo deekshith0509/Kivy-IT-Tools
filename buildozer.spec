@@ -11,7 +11,8 @@ orientation = portrait
 version = 0.1
 source.dir = .
 
-icon.filename = icon.png               # <--- Add this line
+presplash.filename = splash.png
+icon.filename = icon.png
 
 # (2) Requirements & Dependencies
 requirements = python3,kivy,kivymd,pyjnius,android
@@ -28,9 +29,7 @@ android.add_asset_dirs = dist
 
 # (6) Packaging & Signing
 android.release = False
-android.allow_presplash_rotation = False
-android.presplash_color = #FFFFFF
-android.presplash = splash.png         # <--- Add this line
+
 
 # (7) Debugging
 log_level = 1
