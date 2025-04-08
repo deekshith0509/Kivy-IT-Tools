@@ -6,11 +6,13 @@ package.domain = com.docker
 
 source.main = main.py
 
-
 source.include_exts = py,png,jpg,kv,atlas,html,js,css,json
 orientation = portrait
 version = 0.1
 source.dir = .
+
+icon.filename = icon.png               # <--- Add this line
+
 # (2) Requirements & Dependencies
 requirements = python3,kivy,kivymd,pyjnius,android
 android.permissions = INTERNET
@@ -28,6 +30,7 @@ android.add_asset_dirs = dist
 android.release = False
 android.allow_presplash_rotation = False
 android.presplash_color = #FFFFFF
+android.presplash = splash.png         # <--- Add this line
 
 # (7) Debugging
 log_level = 1
